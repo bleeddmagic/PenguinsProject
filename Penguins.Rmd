@@ -1,0 +1,257 @@
+---
+title: "Assignment 3- Reproducible figure"
+output:
+  html_document: default
+  pdf_document: default
+date: "2024-12-09"
+---
+
+```{r}
+library(palmerpenguins)
+library(arm)
+library(ggfortify)
+library(ggplot2)
+library(ragg)
+library(coefplot)
+library(dplyr)
+library(tidyverse)
+library(janitor)
+```
+
+## QUESTION 01: Data Visualisation for Science Communication
+
+*Create a figure using the Palmer Penguin dataset that is correct but badly communicates the data. **Do not make a boxplot**.*
+
+### a) Provide your figure here:
+
+```{r loading data}
+rawdata <- penguins
+cleandata <- na.omit(rawdata)
+cleandata$species <- as.factor(cleandata$species) 
+```
+
+For simplicity, I used the pre-cleaned 'penguins' dataset for this exercise- I will manually clean penguins_raw for my statistical test in question 2.
+
+```{r, echo=FALSE}
+ggplot(cleandata, aes(x = body_mass_g, y = flipper_length_mm, color = island)) +
+  geom_point(size = 3, alpha = 0.7) +
+  scale_color_manual(values = c("darkorange", "purple", "cyan4", "darkorange", "purple", "cyan4")) +
+  labs(x = "Body mass (g)",
+       y = "Flipper length (mm)",
+       color = "Island (points)/Species (lines)") +
+  geom_smooth(aes(group = species, color = species), method = "lm", se = FALSE) +
+  theme_bw()
+
+```
+
+### b) Write about how your design choices mislead the reader about the underlying data (100-300 words).
+
+This scatter plot shows flipper length against body mass for all datapoints in my cleaned dataset. My first poor design choice was to colour the datapoints by island, rather than by species. One reason this is an issue is that I utilised the colour palette generally associated with different penguin species rather than using additional colours to represent islands, which may mislead the viewer if they are familiar with the palmerpenguins data but do not read the legend fully. I have also used trend lines fitted to species, again using the colour palette associated with penguin species. This is confusing as it shows a different set of trends to the ones I have outlined in colouring my individual datapoints, but uses the same colours, and the raw data underlying the linear models based on species cannot be seen. I have also created a somewhat unclear legend, which provides two separate sets of information under the same header. The header is not clear to interpret and is excessively long, and could be improved by splitting up the island and species points. I also did not include a title, meaning the viewer may not instantly recognise what the graph is showing, and will need to read the axes, which is inefficient. Overall, the graph tries to show too much information and my colour choices are poor, making it quite visually confusing and busy.
+
+------------------------------------------------------------------------
+
+## QUESTION 2: Data Pipeline
+
+### Introduction
+
+I am choosing to analyse if/how the body mass of the penguins differs significantly between species. To do this, I will first load and clean the appropriate data, and create a figure to improve my understanding of this data. I will then perform a linear model analysis to determine if there are significant differences in body mass between the species groups.
+
+I first loaded and cleaned the penguins_raw data.
+
+```{r}
+penguinsraw <- penguins_raw
+head(penguinsraw)
+#I can see from this some of the issues with the raw data- long species names, NA values, hard to manage column names, etc
+```
+
+```{r}
+#A set of functions allowing us to clean the raw dataset:
+
+clean_column_names <- function(penguins_data) {
+  print("made column names lower case")
+  penguins_data %>%
+    clean_names()
+}
+
+remove_columns <- function(penguins_data, column_names) {
+  print("removed named columns")
+  penguins_data %>%
+    select(-starts_with(column_names))
+}
+
+shorten_species <- function(penguins_data) {
+  print("shortened species names")
+  penguins_data %>%
+    mutate(species = case_when(
+      species == "Adelie Penguin (Pygoscelis adeliae)" ~ "Adelie",
+      species == "Chinstrap penguin (Pygoscelis antarctica)" ~ "Chinstrap",
+      species == "Gentoo penguin (Pygoscelis papua)" ~ "Gentoo"
+    ))
+}
+
+remove_empty_columns_rows <- function(penguins_data) {
+  print("removed empty columns")
+  penguins_data %>%
+    remove_empty(c("rows", "cols"))
+}
+
+remove_NA <- function(penguins_data) {
+  print("removed NA values")
+  penguins_data %>%
+    na.omit()
+}
+```
+
+```{r}
+#Running all necessary cleaning functions on the raw data
+
+penguinsclean <- penguinsraw %>%
+clean_column_names() %>%
+remove_columns(c("comments", "delta")) %>%
+shorten_species() %>%
+remove_empty_columns_rows() %>%
+remove_NA() 
+```
+
+```{r}
+head(penguinsclean)
+#I can view the cleaned data, and most issues with it seem to be fixed 
+```
+
+I also know I want 'species' to be a factor, rather than a character value, for my analysis-
+
+```{r}
+penguinsclean$species <- as.factor(penguinsclean$species)
+head(penguinsclean)
+```
+
+#### Exploratory figure
+
+To better visualise the data I will be working with (species and body mass), I created an exploratory density plot, looking at the distribution of body masses for each species.
+
+```{r}
+ggplot(penguinsclean, aes(x = body_mass_g, fill = species, color = species)) +
+  geom_density(alpha = 0.4) + 
+  scale_color_manual(values = c("darkorange", "purple", "cyan4")) +
+  scale_fill_manual(values = c("darkorange", "purple", "cyan4")) +
+  guides(color = "none") +
+  labs(title = "Body mass density for each penguin species", x = "Body Mass (g)", y = "Density", fill = "Species") +
+  theme_bw()
+ggsave("fig1.png", width = 6, height = 4) 
+```
+
+As well as providing information on the general spread of data, this plot also suggests that the distributions of body mass for each species looks roughly normal, which is useful information for future statistical analyses.
+
+### Hypothesis
+
+Looking at this density plot, it appears that the Gentoo penguins have a higher body mass compared to the other two species, which appear to have roughly similar body mass. The Chinstrap distribution looks slightly narrower compared to the Adelie distribution, but I do not expect this to impact my analysis. Based on this, I am choosing to test if the differences between species are significant using linear models. These models will test if species can predict body mass, and therefore if body mass differs significantly between species.
+
+The null hypothesis I want to test is that species is not a predictor of body mass, and that my linear model will not fit the data better than a null model.
+
+### Statistical Methods
+
+The first step is to create our first linear model, which will automatically use Adelie as the reference species-
+
+```{r}
+model <- lm(body_mass_g ~ species, data = penguinsclean)
+```
+
+Before we form any conclusions from the model, we need to check the assumptions of the model are true. This involves creating a plot of the residuals, which should show both normality and equal variance.
+
+```{r}
+autoplot(model, which = c(1,2)) +
+  theme_bw()
+```
+
+From this, it seems that the data fulfil our assumptions of normality and equal variance of residuals. Looking at the plot of fitted vs residual values (left), the trend line is very close to 0, suggesting residuals are sufficiently randomly distributed that we can assume there is no considerable heteroscedasticity or breaches in normality. The Q-Q plot points also fall close to the diagonal line, again suggesting that the assumptions of our model are met.
+
+The next step, now we have checked assumptions, is to use the coefficients generated by the summary() function to test our hypothesis.
+
+```{r}
+model <- lm(body_mass_g ~ species, data = penguinsclean)
+summary(model) 
+```
+
+This function gives us a lot of useful information on our model. The estimate of the intercept represents the mean mass of the Adelie penguins (our reference category), with the estimates for Chinstrap and Gentoo representing the differences in mean from the Adelie group. It is apparent from these estimates that the Gentoo group has a significantly larger mean mass compared to the other two species, which have relatively similar mean masses. The t value is also significant for the difference between the Adelie and Gentoo groups, but not for the difference between Adelie and Chinstrap groups, suggesting that there is no significant difference in body mass between Adelie and Chinstrap penguins, but Gentoo have significantly different body mass.
+
+We can also see that 67.25% of the variation seen in body mass across the penguins can be explained by species (as our R squared calue is 0.6725). Our p value for this is statistically significant, suggesting that a significant amount of the variance between penguins is explained by species.
+
+This model did not address the question of if Gentoo have significantly body mass from Chinstrap, so we can create another model with the intercept representing Gentoo:
+
+```{r}
+model2 <- lm(body_mass_g ~ factor(species, levels = c("Gentoo", "Adelie", "Chinstrap")), data = penguinsclean)
+summary(model2)
+```
+
+From this, we can determine that Gentoo penguins' body mass differs significantly from both Chinstrap and Adelie, owing to the significant t values for the difference between the intercept (Gentoo mean mass) and Adelie and Chinstrap means.
+
+### Results & Discussion
+
+A good way to visually see the results of this analysis is to generate confidence intervals around the intercept for the Adelie group. If the confidence interval does not pass through 0, we can assume a significant difference between Adelie and the other groups.
+
+```{r Plotting Results}
+CI95 <- confint(model, level = 0.95)
+CI95
+plot95 <- coefplot(model, xlim = c(-200, 2000)) +
+  theme_bw()
+plot95
+ggsave("figures/fig2.png", plot = plot95)
+```
+
+The confidence interval for the Chinstrap group crosses through 0, suggesting no significant difference in body mass between Chinstrap and Adelie, but the Gentoo confidence interval falls away from 0, suggesting a significant difference between Adelie and Gentoo body mass.
+
+We can also do this with the model which uses Gentoo as the reference category:
+
+```{r}
+CI95_Gentoo <- confint(model2, level = 0.95)
+CI95_Gentoo
+plot95_Gentoo <- coefplot(model2, xlim = c(-2000, 0)) +
+  theme_bw()
+plot95_Gentoo
+ggsave("figures/fig3.png", plot = plot95_Gentoo)
+```
+
+We can again see that the confidence intervals for the Chinstrap and Adelie groups do not cross through 0, suggesting that the Adelie and Chinstrap groups differ significantly from the values for Gentoo.
+
+### Conclusion
+
+To conclude, my analyses suggest that there is a significant difference in body mass between Gentoo penguins and Chinstrap/Adelie penguins. There is not a significant difference between Adelie and Chinstrap groups. While no analysis can be guaranteed to be generalisable to whole populations, this dataset and analysis seem quite robust (large enough sample sizes, representative samples in terms of sex etc, data fitting assumptions required for accurate linear modelling). This suggests that these results are likely to be relatively trustworthy, and it can be fairly concluded that there is a significant difference between Gentoo and Chinstrap/Adelie penguins, but not between Chinstrap and Adelie groups.
+
+## QUESTION 3: Open Science
+
+### a) GitHub
+
+*Upload your RProject you created for **Question 2** and any files and subfolders used to GitHub. Do not include any identifiers such as your name. Make sure your GitHub repo is public.*
+
+*GitHub link:*
+
+*You will be marked on your repo organisation and readability.*
+
+### b) Share your repo with a partner, download, and try to run their data pipeline.
+
+*Partner's GitHub link:*
+
+*You **must** provide this so I can verify there is no plagiarism between you and your partner.*
+
+### c) Reflect on your experience running their code. (300-500 words)
+
+-   *What elements of your partner's code helped you to understand and run their data pipeline?*
+
+-   *Did it run? Did you need to fix anything?*
+
+-   *What suggestions would you make for improving their code to make it more understandable or reproducible, and why?*
+
+-   *If you needed to alter your partner's figure using their code, do you think that would be easy or difficult, and why?*
+
+### d) Reflect on your own code based on your experience with your partner's code and their review of yours. (300-500 words)
+
+-   *What improvements did they suggest, and do you agree?*
+
+-   *What did you learn about writing code for other people?*
+
+### e) What are the main barriers for scientists to share their data and code, and what could be done to overcome them? (500-700 words)
+
+-   Maitner et al. Code sharing increases citations, but remains uncommon. <https://doi.org/10.21203/rs.3.rs-3222221/v1>
+-   Trisovic et al. A large-scale study on research code quality and execution. <https://rdcu.be/dZB7x>
+-   A Rock-Star Researcher Spun a Web of Lies—and Nearly Got Away with It. <https://thewalrus.ca/a-rock-star-researcher-spun-a-web-of-lies-and-nearly-got-away-with-it/>
+-   Gomes et al. Why don't we share data and code? Perceived barriers and benefits to public archiving practices <https://doi.org/10.1098/rspb.2022.1113>
