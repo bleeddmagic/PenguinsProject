@@ -261,10 +261,7 @@ I also found the annotations on the code itself were generally helpful, and help
 
 -   *Did it run? Did you need to fix anything?*
 
-The code ran without major issues after I had manually used the renv::init() function to install all necessary packages, as outlined in the code. 
-
-I did have to slightly edit the save plot functions, as they were greyed out with hashtags and there was a typo in the function name, but this was easily fixed. 
-
+The code ran without major issues after I had manually used the renv::init() function to install all necessary packages, as outlined in the code.  
 
 -   *What suggestions would you make for improving their code to make it more understandable or reproducible, and why?*
 
@@ -283,4 +280,25 @@ However, the layout may slightly complicate the process of altering the figure. 
 
 -   *What improvements did they suggest, and do you agree?*
 
+Their suggestions were as follows:
+
+-	Utilising the ‘here’ package to ensure all files are saved appropriately. They did not have any issues with saving files, but I agree that using a package to ensure files are all stored appropriately is good practice, and I would do this in the future. 
+
+-	Use the renv function to create a renv folder containing my packages, rather than relying on install.packages. I had a renv file in my GitHub repository, but had not included any instructions for how to access this. My rationale for this decision was to give people a choice for how to install the appropriate packages (from the renv file, or using individual install.packages functions), but again, I now realise using renv is better practice, as it ensures the same versions of the packages are being installed, making the code more reproducible in the long-term.
+
+-	Having my cleaning functions in a separate script. I agree that this would make my code cleaner, and potentially easier to understand. 
+
+-	The addition of a ReadMe file outlining how to set up and run my code. I have now done this, as I was planning on doing this after I had sent off my code for feedback. While not having this file did not seem to cause my partner issues, I do agree that setting up this file should have been more of a priority. 
+
+
 -   *What did you learn about writing code for other people?*
+
+Having someone else read my code and receiving this feedback taught me a few things about writing code for other people. 
+
+First, as I mentioned above, I was reminded of the importance of being extra vigilant with things such as how I write code for installing and loading packages and writing file storage paths. This exercise has improved my ability to identify areas where problems may emerge when my code is being run on other machines, and has emphasised the importance of following best practices such as using renv files and the here package to ensure reproducibility. 
+
+I also was reminded of the importance of getting others to run through your code and provide feedback on how they found it, as the feedback not only provided me with areas where I could improve my code, but also insight into things others people found useful about it which I can carry forward. I think this exercise has significantly improved my understanding of what is useful as a reader of others' code, such as adding in-depth annotations of individual lines of code, especially when using more obscure functions, and adding very clear introductory explanations of what the code aims to do. 
+
+
+
+
