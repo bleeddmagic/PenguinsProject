@@ -7,14 +7,23 @@ date: "2024-12-09"
 ---
 
 ```{r}
+install.packages("palmerpenguins")
 library(palmerpenguins)
+install.packages("arm")
 library(arm)
+install.packages("ggfortify")
 library(ggfortify)
+install.packages("ggplot2")
 library(ggplot2)
+install.packages("ragg")
 library(ragg)
+install.packages("coefplot")
 library(coefplot)
+install.pakages("dplyr")
 library(dplyr)
+install.packages("tidyverse")
 library(tidyverse)
+install.packages("janitor")
 library(janitor)
 ```
 
