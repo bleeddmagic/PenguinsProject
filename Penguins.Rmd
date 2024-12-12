@@ -244,7 +244,7 @@ To conclude, my analyses suggest that there is a significant difference in body 
 
 ### b) Share your repo with a partner, download, and try to run their data pipeline.
 
-*Partner's GitHub link:*
+*Partner's GitHub link:* https://github.com/Biology3579/ReproducibleScienceAssignment 
 
 *You **must** provide this so I can verify there is no plagiarism between you and your partner.*
 
