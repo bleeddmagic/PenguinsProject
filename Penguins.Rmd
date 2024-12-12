@@ -19,7 +19,7 @@ install.packages("ragg")
 library(ragg)
 install.packages("coefplot")
 library(coefplot)
-install.pakages("dplyr")
+install.packages("dplyr")
 library(dplyr)
 install.packages("tidyverse")
 library(tidyverse)
@@ -252,11 +252,32 @@ To conclude, my analyses suggest that there is a significant difference in body 
 
 -   *What elements of your partner's code helped you to understand and run their data pipeline?*
 
+The hypothesis and methods section were useful as they outlined the rationale behind the analysis, and gave me a good understanding of the steps I could expect to see in the code, which was useful as there were quite a few different methods used. This was helpful when I came to look at the code itself, and I could refer back to this section when necessary. 
+
+The code itself was laid out well, with appropriate subheadings which were useful for keeping track of exactly which tests were being done at different points. 
+
+I also found the annotations on the code itself were generally helpful, and helped to clarify what each line/chunk of code was doing. The annotations on the packages were very clear and helpful, and other annotations were useful for determining what each block of code was doing. 
+
+
 -   *Did it run? Did you need to fix anything?*
+
+The code ran without major issues after I had manually used the renv::init() function to install all necessary packages, as outlined in the code. 
+
+I did have to slightly edit the save plot functions, as they were greyed out with hashtags and there was a typo in the function name, but this was easily fixed. 
+
 
 -   *What suggestions would you make for improving their code to make it more understandable or reproducible, and why?*
 
+While the methods and conclusion sections were clear, I did find myself referring to them while looking at the code, and understandability could have been slightly improved by moving/repeating these sections closer to the relevant sections of code. While annotations of the code did help and referring to other parts of the document is not a huge deal, I would have found it more intuitive for the results of a statistical test to be interpreted immediately below its corresponding code, for example.
+
+I was also given a warning message when installing the packages using renv::init() that I should install the ‘yaml’ package, which I did manually. While I am not sure if skipping this would have impacted my ability to run the code, it would be better for reproducibility to include the installation of this package somewhere in the code itself, in case it did have an impact on the way the code runs. 
+
+
 -   *If you needed to alter your partner's figure using their code, do you think that would be easy or difficult, and why?*
+
+The figures were plotted using functions in a separate R document. The functions here are quite clear in what they do and would be relatively easy to manipulate, as they are annotated by chunk and the function of each line can be fairly easily inferred. 
+
+However, the layout may slightly complicate the process of altering the figure. The lack of instant feedback on if the changes worked would make the process slightly less streamlined, but I think altering the figure would be relatively unproblematic in general as everything within the plotting.R document is well laid-out and annotated. 
 
 ### d) Reflect on your own code based on your experience with your partner's code and their review of yours. (300-500 words)
 
