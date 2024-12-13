@@ -29,8 +29,6 @@ install.packages("readr")
 library(readr)
 ```
 
-Note: code for installing packages is present in the .Rmd file
-
 ## QUESTION 01: Data Visualisation for Science Communication
 
 *Create a figure using the Palmer Penguin dataset that is correct but badly communicates the data. **Do not make a boxplot**.*
