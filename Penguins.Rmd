@@ -25,6 +25,8 @@ install.packages("tidyverse")
 library(tidyverse)
 install.packages("janitor")
 library(janitor)
+install.packages("readr")
+library(readr)
 ```
 
 Note: code for installing packages is present in the .Rmd file
@@ -57,7 +59,11 @@ ggplot(cleandata, aes(x = body_mass_g, y = flipper_length_mm, color = island)) +
 
 ### b) Write about how your design choices mislead the reader about the underlying data (100-300 words).
 
-This scatter plot shows flipper length against body mass for all datapoints in my cleaned dataset. My first poor design choice was to colour the datapoints by island, rather than by species. One reason this is an issue is that I utilised the colour palette generally associated with the different penguin species rather than using additional colours to represent islands, which may mislead the viewer if they are familiar with the palmerpenguins data but do not read the legend fully. The individual datapoints are plotted using large enough circles that they are crossing over each other in many places, also making the graph more visually confusing. I have also used trend lines fitted to species, again using the colour palette associated with penguin species. This is confusing as it shows a different set of trends to the ones I have outlined in colouring my individual datapoints, but uses the same colours, and the raw data underlying the linear models based on species cannot be seen. I have also created a somewhat unclear legend, which provides two separate sets of information under the same header. The header is not clear to interpret and is excessively long, and could be improved by splitting up the island and species points. I also did not include a title, meaning the viewer may not instantly recognise what the graph is showing, and will need to read the axes, which is inefficient. Overall, the graph tries to show too much information and my colour choices are poor, making it quite visually confusing and busy.
+This scatter plot shows flipper length against body mass for all datapoints in my cleaned dataset. My first poor design choice was to colour the datapoints by island, rather than by species. One reason this is an issue is that I utilised the colour palette generally associated with the different penguin species rather than using additional colours to represent islands, which may mislead the viewer if they are familiar with the palmerpenguins data but do not read the legend fully. The individual datapoints are plotted using large enough circles that they are crossing over each other in many places, also making the graph more visually confusing. 
+
+I have also used trend lines fitted to species, again using the colour palette associated with penguin species. This is confusing as it shows a different set of trends to the ones I have outlined in colouring my individual datapoints, but uses the same colours, and the raw data underlying the linear models based on species cannot be seen. 
+
+I have additionally created a somewhat unclear legend, which provides two separate sets of information under the same header. The header is not clear to interpret and is excessively long, and could be improved by splitting up the island and species points. I also did not include a title, meaning the viewer may not instantly recognise what the graph is showing, and will need to read the axes, which is inefficient. Overall, the graph tries to show too much information and my colour choices are poor, making it quite visually confusing and busy.
 
 ------------------------------------------------------------------------
 
@@ -163,7 +169,7 @@ As well as providing information on the general spread of data, this plot also s
 
 Looking at this density plot, it appears that the Gentoo penguins have a higher body mass compared to the other two species, which appear to have roughly similar body mass. The Chinstrap distribution looks slightly narrower compared to the Adelie distribution, but I do not expect this to impact the results of my analysis. Based on this observation, I am choosing to test if the differences between species are significant using linear models. These models will test if species can predict body mass, and therefore if body mass differs significantly between species.
 
-The null hypothesis I want to test is that species is not a predictor of body mass, and that my linear model will not fit the data better than a null model.
+The null hypothesis I want to test is that species is not a predictor of body mass, and that my linear models will not fit the data better than a null model.
 
 ### Statistical Methods
 
@@ -180,7 +186,7 @@ autoplot(model, which = c(1,2)) +
   theme_bw()
 ```
 
-From this, it seems that the data fulfil our assumptions of normality and equal variance of residuals. Looking at the plot of fitted vs residual values (left), the trend line is very close to 0, suggesting residuals are sufficiently randomly distributed that we can assume there is no considerable heteroscedasticity or breaches in normality. The Q-Q plot points also fall close to the diagonal line, which suggests no considerable breaches of normality.
+From this, it seems that the data fulfil our assumptions of normality and equal variance of residuals. Looking at the plot of fitted vs residual values (left), the trend line is very close to 0, suggesting residuals are sufficiently randomly distributed that we can assume there is no considerable heteroscedasticity or breaches in normality. The Q-Q plot points also fall close to the diagonal line, which suggests no considerable breaches of normality. I have chosen not to run any quantitative tests as these plots show relatively little doubt that the model's assumptions are violated.
 
 The next step, now we have checked assumptions, is to use the coefficients generated by the summary() function to test our hypothesis.
 
@@ -191,9 +197,9 @@ summary(model)
 
 This function gives us a lot of useful information on our model. The estimate of the intercept represents the mean mass of the Adelie penguins (our reference category), with the estimates for Chinstrap and Gentoo representing the differences in mean from the Adelie group. It is apparent from these estimates that the Gentoo group has a significantly larger mean mass compared to the other two species, which have relatively similar mean masses. The t value is also significant for the difference between the Adelie and Gentoo groups, but not for the difference between Adelie and Chinstrap groups, suggesting that there is no significant difference in body mass between Adelie and Chinstrap penguins, but Gentoo penguins have significantly different body mass to Adelie.
 
-We can also see that 67.25% of the variation seen in body mass across the penguins can be explained by species (as our R squared value is 0.6725). Our p value for this is statistically significant, suggesting that a significant amount of the variance between penguins is explained by species.
+We can also see that 67.25% of the variation seen in body mass across the penguins can be explained by species (as our R squared value is 0.6725). Our p value for this is statistically significant, suggesting that a significant amount of the variance between penguins is explained by species in this model.
 
-This model did not address the question of if Gentoo have significantly body mass from Chinstrap, so we can create another model with the intercept representing Gentoo:
+This model did not address the question of if Gentoo penguins have significantly body mass from Chinstrap penguins, so we can create another model with the intercept representing Gentoo:
 
 ```{r}
 model2 <- lm(body_mass_g ~ factor(species, levels = c("Gentoo", "Adelie", "Chinstrap")), data = penguinsclean)
@@ -215,7 +221,7 @@ plot95
 ggsave("figures/fig2.png", plot = plot95)
 ```
 
-The confidence interval for the Chinstrap group crosses through 0, suggesting no significant difference in body mass between Chinstrap and Adelie, but the Gentoo confidence interval falls away from 0, suggesting a significant difference between Adelie and Gentoo body mass.
+The confidence interval for the Chinstrap group coefficient crosses through 0, suggesting no significant difference in body mass between Chinstrap and Adelie, but the Gentoo confidence interval falls away from 0, suggesting a significant difference between Adelie and Gentoo body mass.
 
 We can also create this figure for the model which uses Gentoo as the reference category:
 
@@ -261,20 +267,20 @@ I also found the annotations on the code itself were generally helpful, and help
 
 -   *Did it run? Did you need to fix anything?*
 
-The code ran without major issues after I had manually used the renv::init() function to install all necessary packages, as outlined in the code.  
+The code ran without issue after I had manually used the renv::init() function to install all necessary packages, as instructed to do in the code.  
 
 -   *What suggestions would you make for improving their code to make it more understandable or reproducible, and why?*
 
 While the methods and conclusion sections were clear, I did find myself referring to them while looking at the code, and understandability could have been slightly improved by moving/repeating these sections closer to the relevant sections of code. While annotations of the code did help and referring to other parts of the document is not a huge deal, I would have found it more intuitive for the results of a statistical test to be interpreted immediately below its corresponding code, for example.
 
-I was also given a warning message when installing the packages using renv::init() that I should install the ‘yaml’ package, which I did manually. While I am not sure if skipping this would have impacted my ability to run the code, it would be better for reproducibility to include the installation of this package somewhere in the code itself, in case it did have an impact on the way the code runs. 
+I was also given a warning message when installing the packages using renv::init() that I should install the ‘yaml’ package, which I did manually. While I am not sure if skipping this would have impacted my ability to run the code, it would be better for reproducibility to include the installation of this package somewhere in the code itself, in case it did have an impact on the way the code runs, and to ensure everyone running the code has the same packages installed. 
 
 
 -   *If you needed to alter your partner's figure using their code, do you think that would be easy or difficult, and why?*
 
 The figures were plotted using functions in a separate R document. The functions here are quite clear in what they do and would be relatively easy to manipulate, as they are annotated by chunk and the function of each line can be fairly easily inferred. 
 
-However, the layout may slightly complicate the process of altering the figure. The lack of instant feedback on if the changes worked would make the process slightly less streamlined, but I think altering the figure would be relatively unproblematic in general as everything within the plotting.R document is well laid-out and annotated. 
+However, this layout may slightly complicate the process of altering the figure. The lack of instant feedback on if the changes worked would make the process of altering a figure slightly less streamlined, but I think altering the figure would be relatively unproblematic in general as everything within the plotting.R document is well laid-out and annotated. 
 
 ### d) Reflect on your own code based on your experience with your partner's code and their review of yours. (300-500 words)
 
@@ -282,13 +288,13 @@ However, the layout may slightly complicate the process of altering the figure. 
 
 Their suggestions were as follows:
 
--	Utilising the ‘here’ package to ensure all files are saved appropriately. They did not have any issues with saving files, but I agree that using a package to ensure files are all stored appropriately is good practice, and I would do this in the future. 
+-	Utilising the ‘here’ package to ensure all files are saved appropriately. They did not have any issues with saving my figures, but I agree that using a package to ensure files are all stored appropriately is good practice, and I would do this in the future. 
 
--	Use the renv function to create a renv folder containing my packages, rather than relying on install.packages. I had a renv file in my GitHub repository, but had not included any instructions for how to access this. My rationale for this decision was to give people a choice for how to install the appropriate packages (from the renv file, or using individual install.packages functions), but again, I now realise using renv is better practice, as it ensures the same versions of the packages are being installed, making the code more reproducible in the long-term.
+-	Make it clearer that the user should use the renv folder to install packages, rather than relying on install.packages. I included a renv file in my GitHub repository, but had not included any instructions for how to access this. My rationale for this decision was to give people a choice for how to install the appropriate packages (from the renv file, or using individual install.packages functions), but again, I now realise using renv is better practice, as it ensures the same versions of the packages are being installed, making the code more reproducible in the long-term.
 
--	Having my cleaning functions in a separate script. I agree that this would make my code cleaner, and potentially easier to understand. 
+-	Having my cleaning functions in a separate script. I agree that this would make my code cleaner and less crowded, as the details of the cleaning functions are not necessary for understanding my general workflow. 
 
--	The addition of a ReadMe file outlining how to set up and run my code. I have now done this, as I was planning on doing this after I had sent off my code for feedback. While not having this file did not seem to cause my partner issues, I do agree that setting up this file should have been more of a priority. 
+-	The addition of a ReadMe file outlining how to set up and run my code. I agree that this would be a necessary area for improvement, as it may not be intuitive what each of my files contains. While not having this file did not seem to cause my partner issues due to the nature of this exercise, I do agree that setting up this file should have been a priority, and would be necessary for someone unfamiliar with the task who may be looking at my code.
 
 
 -   *What did you learn about writing code for other people?*
@@ -297,7 +303,7 @@ Having someone else read my code and receiving this feedback taught me a few thi
 
 First, as I mentioned above, I was reminded of the importance of being extra vigilant with things such as how I write code for installing and loading packages and writing file storage paths. This exercise has improved my ability to identify areas where problems may emerge when my code is being run on other machines, and has emphasised the importance of following best practices such as using renv files and the here package to ensure reproducibility. 
 
-I also was reminded of the importance of getting others to run through your code and provide feedback on how they found it, as the feedback not only provided me with areas where I could improve my code, but also insight into things others people found useful about it which I can carry forward. I think this exercise has significantly improved my understanding of what is useful as a reader of others' code, such as adding in-depth annotations of individual lines of code, especially when using more obscure functions, and adding very clear introductory explanations of what the code aims to do. 
+I also was reminded of the importance of getting others to run through your code and provide feedback on how they found it, as the feedback not only provided me with areas where I could improve my code, but also insight into things others people found useful in my code which I can carry forward. I think this exercise has significantly improved my understanding of what is useful as a reader of others' code, such as adding in-depth annotations of individual lines of code, especially when using more obscure functions, and adding very clear outlines of what the code aims to do. 
 
 
 
